@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pivnenko_Lab_1", "Pivnenko_Lab_1\Pivnenko_Lab_1.vcxproj", "{58D353E7-4B35-4C02-BE96-86640332D97E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Debug|x64.ActiveCfg = Debug|x64
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Debug|x64.Build.0 = Debug|x64
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Debug|x86.ActiveCfg = Debug|Win32
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Debug|x86.Build.0 = Debug|Win32
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Release|x64.ActiveCfg = Release|x64
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Release|x64.Build.0 = Release|x64
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Release|x86.ActiveCfg = Release|Win32
+		{58D353E7-4B35-4C02-BE96-86640332D97E}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CB3CC2E2-0AEE-4B84-BCE8-BC4B95FC7679}
+	EndGlobalSection
+EndGlobal
