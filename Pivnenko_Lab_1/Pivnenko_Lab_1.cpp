@@ -1,20 +1,129 @@
-﻿// Pivnenko_Lab_1.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
+﻿#include <iostream>
+#include <string>
+#include <limits>
+#include <clocale>
 
-#include <iostream>
+using namespace std;
 
-int main()
-{
-    std::cout << "Hello World!\n";
+struct Pipe {
+    string name;
+    float length_km;
+    int diameter_mm;
+    bool is_work;
+};
+
+struct CompressorStation {
+    string name;
+    int total;
+    int active_total;
+    int station_class;
+};
+
+int getValidInt(const string& prompt) {
+    int value;
+    cout << prompt;
+    while (!(cin >> value)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Ошибка ввода. Введите целое число: ";
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    return value;
 }
 
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
+float getValidFloat(const string& prompt) {
+    float value;
+    cout << prompt;
+    while (!(cin >> value)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Ошибка ввода. Введите число: ";
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    return value;
+}
 
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
+void displayMenu() {
+    cout << "\n=== Система управления трубопроводом ===" << endl;
+    cout << "1. Добавить трубу" << endl;
+    cout << "2. Добавить КС" << endl;
+    cout << "3. Просмотр всех объектов" << endl;
+    cout << "4. Редактировать трубу" << endl;
+    cout << "5. Редактировать КС" << endl;
+    cout << "6. Сохранить в файл" << endl;
+    cout << "7. Загрузить из файла" << endl;
+    cout << "0. Выход" << endl;
+    cout << "Выберите опцию: ";
+}
+
+void addPipe(Pipe& pipe) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void addCompressorStation(CompressorStation& cs) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void displayAll(const Pipe& pipe, const CompressorStation& cs) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void editPipe(Pipe& pipe) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void editCompressorStation(CompressorStation& cs) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void saveToFile(const Pipe& pipe, const CompressorStation& cs) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+void loadFromFile(Pipe& pipe, CompressorStation& cs) {
+    cout << "Ждем следующего коммита" << endl;
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    Pipe pipe;
+    CompressorStation cs;
+    int choice;
+
+    while (true) {
+        displayMenu();
+        choice = getValidInt("");
+
+        switch (choice) {
+        case 1:
+            addPipe(pipe);
+            break;
+        case 2:
+            addCompressorStation(cs);
+            break;
+        case 3:
+            displayAll(pipe, cs);
+            break;
+        case 4:
+            editPipe(pipe);
+            break;
+        case 5:
+            editCompressorStation(cs);
+            break;
+        case 6:
+            saveToFile(pipe, cs);
+            break;
+        case 7:
+            loadFromFile(pipe, cs);
+            break;
+        case 0:
+            cout << "Выход из программы..." << endl;
+            return 0;
+        default:
+            cout << "Неверный выбор. Пожалуйста, выберите от 0 до 7." << endl;
+        }
+    }
+
+    return 0;
+}
