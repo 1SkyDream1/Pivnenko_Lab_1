@@ -2,6 +2,7 @@
 #include <string>
 #include <limits>
 #include <clocale>
+#include <iomanip>
 
 using namespace std;
 
@@ -43,6 +44,29 @@ float getValidFloat(const string& prompt) {
     return value;
 }
 
+// Вынесены из getValidFloat!
+float getValidPositiveFloat(const string& prompt) {
+    float value;
+    while (true) {
+        value = getValidFloat(prompt);
+        if (value > 0) {
+            return value;
+        }
+        cout << "Ошибка! Значение должно быть положительным. Попробуйте снова: ";
+    }
+}
+
+int getValidPositiveInt(const string& prompt) {
+    int value;
+    while (true) {
+        value = getValidInt(prompt);
+        if (value > 0) {
+            return value;
+        }
+        cout << "Ошибка! Значение должно быть положительным. Попробуйте снова: ";
+    }
+}
+
 void displayMenu() {
     cout << "\n=== Система управления трубопроводом ===" << endl;
     cout << "1. Добавить трубу" << endl;
@@ -57,15 +81,66 @@ void displayMenu() {
 }
 
 void addPipe(Pipe& pipe) {
-    cout << "Ждем следующего коммита" << endl;
+    cout << "\n=== Добавление новой трубы ===" << endl;
+    cout << "Введите километровую отметку: ";
+    getline(cin, pipe.name);
+    pipe.length_km = getValidPositiveFloat("Введите длину трубы (км): ");
+    pipe.diameter_mm = getValidPositiveInt("Введите диаметр трубы (мм): ");
+    pipe.is_work = true;
+    cout << "Труба успешно добавлена!" << endl;
 }
+
 
 void addCompressorStation(CompressorStation& cs) {
-    cout << "Ждем следующего коммита" << endl;
+    cout << "\n=== Добавление новой КС ===" << endl;
+    cout << "Введите название КС: ";
+    getline(cin, cs.name);
+    cs.total = getValidPositiveInt("Введите общее количество цехов: ");
+
+    while (true) {
+        cs.active_total = getValidInt("Введите количество работающих цехов: ");
+        if (cs.active_total >= 0 && cs.active_total <= cs.total) {
+            break;
+        }
+        cout << "Ошибка! Количество работающих цехов не может превышать общее количество ("
+            << cs.total << ") и не может быть отрицательным. Попробуйте снова." << endl;
+    }
+
+    cs.station_class = getValidPositiveInt("Введите класс станции: ");
+    cout << "Компрессорная станция успешно добавлена!" << endl;
 }
 
+
 void displayAll(const Pipe& pipe, const CompressorStation& cs) {
-    cout << "Ждем следующего коммита" << endl;
+    cout << "\n=== Просмотр всех объектов ===" << endl;
+
+    // Вывод информации о трубе
+    cout << "--- Труба ---" << endl;
+    if (pipe.name.empty()) {
+        cout << "Труба не добавлена" << endl;
+    }
+    else {
+        cout << "Километровая отметка: " << pipe.name << endl;
+        cout << "Длина: " << pipe.length_km << " км" << endl;
+        cout << "Диаметр: " << pipe.diameter_mm << " мм" << endl;
+        cout << "Состояние: " << (pipe.is_work ? "В работе" : "В ремонте") << endl;
+    }
+
+    // Вывод информации о компрессорной станции
+    cout << "\n--- Компрессорная станция ---" << endl;
+    if (cs.name.empty()) {
+        cout << "КС не добавлена" << endl;
+    }
+    else {
+        cout << "Название: " << cs.name << endl;
+        cout << "Общее количество цехов: " << cs.total << endl;
+        cout << "Работающих цехов: " << cs.active_total << endl;
+        cout << "Класс станции: " << cs.station_class << endl;
+        cout << "Процент работающих цехов: "
+            << fixed << setprecision(1)
+            << (cs.total > 0 ? (100.0 * cs.active_total / cs.total) : 0)
+            << "%" << endl;
+    }
 }
 
 void editPipe(Pipe& pipe) {
