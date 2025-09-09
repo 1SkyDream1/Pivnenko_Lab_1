@@ -20,6 +20,7 @@ struct CompressorStation {
     int station_class;
 };
 
+//Валидация =======================
 int getValidInt(const string& prompt) {
     int value;
     cout << prompt;
@@ -44,7 +45,6 @@ float getValidFloat(const string& prompt) {
     return value;
 }
 
-// Вынесены из getValidFloat!
 float getValidPositiveFloat(const string& prompt) {
     float value;
     while (true) {
@@ -66,6 +66,22 @@ int getValidPositiveInt(const string& prompt) {
         cout << "Ошибка! Значение должно быть положительным. Попробуйте снова: ";
     }
 }
+
+bool getYesNoInput(const string& prompt) {
+    string input;
+    while (true) {
+        cout << prompt << " (y/n): ";
+        getline(cin, input);
+        if (input == "y" || input == "Y") {
+            return true;
+        }
+        else if (input == "n" || input == "N") {
+            return false;
+        }
+        cout << "Ошибка! Введите 'y' или 'n': ";
+    }
+}
+//====================================================
 
 void displayMenu() {
     cout << "\n=== Система управления трубопроводом ===" << endl;
@@ -144,11 +160,111 @@ void displayAll(const Pipe& pipe, const CompressorStation& cs) {
 }
 
 void editPipe(Pipe& pipe) {
-    cout << "Ждем следующего коммита" << endl;
+    if (pipe.name.empty()) {
+        cout << "Ошибка! Труба не добавлена. Сначала добавьте трубу." << endl;
+        return;
+    }
+
+    cout << "\n=== Редактирование трубы ===" << endl;
+    cout << "Текущие данные:" << endl;
+    cout << "Километровая отметка: " << pipe.name << endl;
+    cout << "Длина: " << pipe.length_km << " км" << endl;
+    cout << "Диаметр: " << pipe.diameter_mm << " мм" << endl;
+    cout << "Состояние: " << (pipe.is_work ? "В работе" : "В ремонте") << endl;
+
+    cout << "\nЧто вы хотите изменить?" << endl;
+    cout << "1. Изменить статус ремонта" << endl;
+    cout << "2. Изменить все параметры" << endl;
+    cout << "0. Отмена" << endl;
+    cout << "Выберите опцию: ";
+
+    int choice = getValidInt("");
+    switch (choice) {
+    case 1:
+        pipe.is_work = !pipe.is_work;
+        cout << "Статус трубы изменен на: "
+            << (pipe.is_work ? "В работе" : "В ремонте") << endl;
+        break;
+    case 2:
+        cout << "Введите новую километровую отметку: ";
+        getline(cin, pipe.name);
+        pipe.length_km = getValidPositiveFloat("Введите новую длину трубы (км): ");
+        pipe.diameter_mm = getValidPositiveInt("Введите новый диаметр трубы (мм): ");
+        cout << "Данные трубы успешно обновлены!" << endl;
+        break;
+    case 0:
+        cout << "Редактирование отменено." << endl;
+        break;
+    default:
+        cout << "Неверный выбор. Редактирование отменено." << endl;
+    }
 }
 
 void editCompressorStation(CompressorStation& cs) {
-    cout << "Ждем следующего коммита" << endl;
+    if (cs.name.empty()) {
+        cout << "Ошибка! КС не добавлена. Сначала добавьте КС." << endl;
+        return;
+    }
+
+    cout << "\n=== Редактирование КС ===" << endl;
+    cout << "Текущие данные:" << endl;
+    cout << "Название: " << cs.name << endl;
+    cout << "Всего цехов: " << cs.total << endl;
+    cout << "Работающих цехов: " << cs.active_total << endl;
+    cout << "Класс станции: " << cs.station_class << endl;
+
+    cout << "\nЧто вы хотите сделать?" << endl;
+    cout << "1. Запустить цех" << endl;
+    cout << "2. Остановить цех" << endl;
+    cout << "3. Изменить все параметры" << endl;
+    cout << "0. Отмена" << endl;
+    cout << "Выберите опцию: ";
+
+    int choice = getValidInt("");
+    switch (choice) {
+    case 1:
+        if (cs.active_total < cs.total) {
+            cs.active_total++;
+            cout << "Цех запущен. Теперь работает " << cs.active_total
+                << " из " << cs.total << " цехов." << endl;
+        }
+        else {
+            cout << "Ошибка! Все цехи уже работают." << endl;
+        }
+        break;
+    case 2:
+        if (cs.active_total > 0) {
+            cs.active_total--;
+            cout << "Цех остановлен. Теперь работает " << cs.active_total
+                << " из " << cs.total << " цехов." << endl;
+        }
+        else {
+            cout << "Ошибка! Нет работающих цехов для остановки." << endl;
+        }
+        break;
+    case 3:
+        cout << "Введите новое название КС: ";
+        getline(cin, cs.name);
+        cs.total = getValidPositiveInt("Введите новое общее количество цехов: ");
+
+        while (true) {
+            cs.active_total = getValidInt("Введите новое количество работающих цехов: ");
+            if (cs.active_total >= 0 && cs.active_total <= cs.total) {
+                break;
+            }
+            cout << "Ошибка! Количество работающих цехов не может превышать общее количество ("
+                << cs.total << ") и не может быть отрицательным. Попробуйте снова." << endl;
+        }
+
+        cs.station_class = getValidPositiveInt("Введите новый класс станции: ");
+        cout << "Данные КС успешно обновлены!" << endl;
+        break;
+    case 0:
+        cout << "Редактирование отменено." << endl;
+        break;
+    default:
+        cout << "Неверный выбор. Редактирование отменено." << endl;
+    }
 }
 
 void saveToFile(const Pipe& pipe, const CompressorStation& cs) {
