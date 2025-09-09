@@ -100,7 +100,7 @@ void displayMenu() {
 
 void addPipe(Pipe& pipe) {
     cout << "\n=== Добавление новой трубы ===" << endl;
-    cout << "Введите километровую отметку: ";
+    cout << "Введите название трубы: ";
     getline(cin, pipe.name);
     pipe.length_km = getValidPositiveFloat("Введите длину трубы (км): ");
     pipe.diameter_mm = getValidPositiveInt("Введите диаметр трубы (мм): ");
