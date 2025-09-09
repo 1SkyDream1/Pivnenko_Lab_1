@@ -3,6 +3,8 @@
 #include <limits>
 #include <clocale>
 #include <iomanip>
+#include <fstream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -268,12 +270,73 @@ void editCompressorStation(CompressorStation& cs) {
 }
 
 void saveToFile(const Pipe& pipe, const CompressorStation& cs) {
-    cout << "Ждем следующего коммита" << endl;
+    ofstream outFile("data.txt");
+    if (!outFile.is_open()) {
+        cout << "Ошибка! Не удалось открыть файл для записи." << endl;
+        return;
+    }
+
+    outFile << "PIPE" << endl;
+    outFile << pipe.name << endl;
+    outFile << pipe.length_km << endl;
+    outFile << pipe.diameter_mm << endl;
+    outFile << pipe.is_work << endl;
+
+    outFile << "STATION" << endl;
+    outFile << cs.name << endl;
+    outFile << cs.total << endl;
+    outFile << cs.active_total << endl;
+    outFile << cs.station_class << endl;
+
+    outFile.close();
+    cout << "Данные успешно сохранены в файл 'data.txt'" << endl;
 }
 
 void loadFromFile(Pipe& pipe, CompressorStation& cs) {
-    cout << "Ждем следующего коммита" << endl;
+    ifstream inFile("data.txt");
+    if (!inFile.is_open()) {
+        cout << "Ошибка! Файл 'data.txt' не найден." << endl;
+        return;
+    }
+
+    string line;
+    string section;
+
+    try {
+        getline(inFile, section);
+        if (section != "PIPE") throw runtime_error("Неверный формат файла");
+
+        getline(inFile, pipe.name);
+        getline(inFile, line);
+        pipe.length_km = stof(line);
+        getline(inFile, line);
+        pipe.diameter_mm = stoi(line);
+        getline(inFile, line);
+        pipe.is_work = (line == "1");
+
+        getline(inFile, section);
+        if (section != "STATION") throw runtime_error("Неверный формат файла");
+
+        getline(inFile, cs.name);
+        getline(inFile, line);
+        cs.total = stoi(line);
+        getline(inFile, line);
+        cs.active_total = stoi(line);
+        getline(inFile, line);
+        cs.station_class = stoi(line);
+
+        inFile.close();
+        cout << "Данные успешно загружены из файла 'data.txt'" << endl;
+
+    }
+    catch (const exception& e) {
+        cout << "Ошибка при загрузке файла: " << e.what() << endl;
+        inFile.close();
+        pipe = Pipe();
+        cs = CompressorStation();
+    }
 }
+
 
 int main() {
     setlocale(LC_ALL, "Russian");
