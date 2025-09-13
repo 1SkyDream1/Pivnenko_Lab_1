@@ -138,7 +138,7 @@ void displayAll(const Pipe& pipe, const CompressorStation& cs) {
         cout << "Труба не добавлена" << endl;
     }
     else {
-        cout << "Километровая отметка: " << pipe.name << endl;
+        cout << "Название: " << pipe.name << endl;
         cout << "Длина: " << pipe.length_km << " км" << endl;
         cout << "Диаметр: " << pipe.diameter_mm << " мм" << endl;
         cout << "Состояние: " << (pipe.is_work ? "В работе" : "В ремонте") << endl;
