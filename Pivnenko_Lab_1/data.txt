@@ -1,10 +1,14 @@
-PIPE
+[pipe]
+name=jhgkjhkjh
+length=500
+diameter=200
+under_repair=0
+created=1
 
--1.07374e+08
--858993460
-204
-STATION
+[cs]
+name=jhbkjj
+workshop_count=100
+working_workshop_count=6
+station_class=45555
+created=1
 
--858993460
--858993460
--858993460
