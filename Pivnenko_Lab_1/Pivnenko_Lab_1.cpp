@@ -607,6 +607,226 @@ void batchEditPipes(vector<Pipe>& pipes) {
     logAction(log_msg);
 }
 
+// ------------------ Сохранение и загрузка ------------------
+
+void savePipesToFile(const vector<Pipe>& pipes, const string& filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "Ошибка открытия файла для сохранения труб: " << filename << endl;
+        return;
+    }
+
+    // Сохраняем текущий next_id первой строкой
+    file << Pipe::next_id << endl;
+
+    for (const Pipe& p : pipes) {
+        file << p.id << "|" << p.name << "|" << p.length << "|"
+            << p.diameter << "|" << p.under_repair << endl;
+    }
+
+    file.close();
+    cout << "Трубы сохранены в файл: " << filename << " (записей: " << pipes.size() << ")" << endl;
+    logAction("Сохранение труб в файл: " + filename + ", записей: " + to_string(pipes.size()));
+}
+
+void saveCSToFile(const vector<CS>& css, const string& filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "Ошибка открытия файла для сохранения КС: " << filename << endl;
+        return;
+    }
+
+    // Сохраняем текущий next_id первой строкой
+    file << CS::next_id << endl;
+
+    for (const CS& c : css) {
+        file << c.id << "|" << c.name << "|" << c.workshop_count << "|"
+            << c.working_workshop_count << "|" << c.station_class << endl;
+    }
+
+    file.close();
+    cout << "КС сохранены в файл: " << filename << " (записей: " << css.size() << ")" << endl;
+    logAction("Сохранение КС в файл: " + filename + ", записей: " + to_string(css.size()));
+}
+
+void saveData(const vector<Pipe>& pipes, const vector<CS>& css) {
+    cout << "\n=== Сохранение данных ===\n";
+
+    // Проверяем, есть ли данные для сохранения
+    if (pipes.empty() && css.empty()) {
+        cout << "Ошибка! Нет данных для сохранения.\n";
+        cout << "Добавьте трубы или КС перед сохранением.\n";
+        logAction("Попытка сохранения при отсутствии данных");
+        return;
+    }
+
+    string pipe_filename = getStringInput("Введите имя файла для труб (по умолчанию pipes.txt): ", true, false);
+    if (pipe_filename.empty()) pipe_filename = "pipes.txt";
+
+    string cs_filename = getStringInput("Введите имя файла для КС (по умолчанию cs.txt): ", true, false);
+    if (cs_filename.empty()) cs_filename = "cs.txt";
+
+    // Сохраняем только если есть данные
+    if (!pipes.empty()) {
+        savePipesToFile(pipes, pipe_filename);
+    }
+    else {
+        cout << "Труб нет, пропускаем сохранение труб.\n";
+    }
+
+    if (!css.empty()) {
+        saveCSToFile(css, cs_filename);
+    }
+    else {
+        cout << "КС нет, пропускаем сохранение КС.\n";
+    }
+
+    cout << "Сохранение завершено!\n";
+}
+
+void loadPipesFromFile(vector<Pipe>& pipes, const string& filename) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Ошибка открытия файла для загрузки труб: " << filename << endl;
+        return;
+    }
+
+    // Читаем next_id первой строкой
+    string next_id_str;
+    if (getline(file, next_id_str)) {
+        try {
+            Pipe::next_id = stoi(next_id_str);
+        }
+        catch (...) {
+            cout << "Ошибка чтения next_id из файла" << endl;
+        }
+    }
+
+    int loaded_count = 0;
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        string token;
+        vector<string> tokens;
+
+        while (getline(ss, token, '|')) {
+            tokens.push_back(token);
+        }
+
+        if (tokens.size() == 5) {
+            try {
+                int id = stoi(tokens[0]);
+                string name = tokens[1];
+                double length = stod(tokens[2]);
+                int diameter = stoi(tokens[3]);
+                bool under_repair = (tokens[4] == "1");
+
+                // Создаем трубу с существующим ID
+                Pipe p;
+                p.id = id;
+                p.name = name;
+                p.length = length;
+                p.diameter = diameter;
+                p.under_repair = under_repair;
+                p.created = true;
+
+                pipes.push_back(p);
+                loaded_count++;
+
+            }
+            catch (...) {
+                cout << "Ошибка разбора строки трубы: " << line << endl;
+            }
+        }
+    }
+
+    file.close();
+    cout << "Трубы загружены из файла: " << filename << " (записей: " << loaded_count << ")" << endl;
+    logAction("Загрузка труб из файла: " + filename + ", записей: " + to_string(loaded_count));
+}
+
+void loadCSFromFile(vector<CS>& css, const string& filename) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Ошибка открытия файла для загрузки КС: " << filename << endl;
+        return;
+    }
+
+    // Читаем next_id первой строкой
+    string next_id_str;
+    if (getline(file, next_id_str)) {
+        try {
+            CS::next_id = stoi(next_id_str);
+        }
+        catch (...) {
+            cout << "Ошибка чтения next_id из файла" << endl;
+        }
+    }
+
+    int loaded_count = 0;
+    string line;
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        string token;
+        vector<string> tokens;
+
+        while (getline(ss, token, '|')) {
+            tokens.push_back(token);
+        }
+
+        if (tokens.size() == 5) {
+            try {
+                int id = stoi(tokens[0]);
+                string name = tokens[1];
+                int workshop_count = stoi(tokens[2]);
+                int working_workshop_count = stoi(tokens[3]);
+                string station_class = tokens[4];
+
+                // Создаем КС с существующим ID
+                CS c;
+                c.id = id;
+                c.name = name;
+                c.workshop_count = workshop_count;
+                c.working_workshop_count = working_workshop_count;
+                c.station_class = station_class;
+                c.created = true;
+
+                css.push_back(c);
+                loaded_count++;
+
+            }
+            catch (...) {
+                cout << "Ошибка разбора строки КС: " << line << endl;
+            }
+        }
+    }
+
+    file.close();
+    cout << "КС загружены из файла: " << filename << " (записей: " << loaded_count << ")" << endl;
+    logAction("Загрузка КС из файла: " + filename + ", записей: " + to_string(loaded_count));
+}
+
+void loadData(vector<Pipe>& pipes, vector<CS>& css) {
+    cout << "\n=== Загрузка данных ===\n";
+
+    string pipe_filename = getStringInput("Введите имя файла для труб (по умолчанию pipes.txt): ", true, false);
+    if (pipe_filename.empty()) pipe_filename = "pipes.txt";
+
+    string cs_filename = getStringInput("Введите имя файла для КС (по умолчанию cs.txt): ", true, false);
+    if (cs_filename.empty()) cs_filename = "cs.txt";
+
+    // Очищаем текущие данные
+    pipes.clear();
+    css.clear();
+
+    loadPipesFromFile(pipes, pipe_filename);
+    loadCSFromFile(css, cs_filename);
+}
+
 // ------------------ Меню ------------------
 void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
     while (true) {
@@ -622,9 +842,11 @@ void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
             << "9. Поиск труб\n"         
             << "10. Поиск КС\n"     
             << "11. Пакетное редактирование труб\n"
+            << "12. Сохранить данные\n"
+            << "13. Загрузить данные\n"
             << "0. Выход\n";
 
-        int choice = getIntegerInput("Выберите действие: ", 0, 11);
+        int choice = getIntegerInput("Выберите действие: ", 0, 13);
 
         switch (choice) {
         case 1:
@@ -660,12 +882,18 @@ void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
         case 11:
             batchEditPipes(pipes);
             break;
+        case 12:
+            saveData(pipes, css);
+            break;
+        case 13:
+            loadData(pipes, css);
+            break;
         case 0:
             cout << "Выход из программы. До свидания!\n";
             logAction("Выход из программы");
             return;
         default:
-            cout << "Неверный выбор! Пожалуйста, введите число от 0 до 11.\n";
+            cout << "Неверный выбор! Пожалуйста, введите число от 0 до 13.\n";
         }
     }
 }
