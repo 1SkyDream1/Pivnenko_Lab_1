@@ -407,7 +407,35 @@ void deleteCSAt(vector<CS>& css) {
     }
 }
 
-// ------------------ Меню ------------------
+// ------------------ Поиск труб ------------------
+void searchPipes(const vector<Pipe>& pipes) {
+    cout << "\n=== Поиск труб ===\n";
+
+    string name_filter = getStringInput("Введите название для поиска (или Enter для пропуска): ", true, true);
+    bool use_repair_filter = getYesNoInput("Фильтровать по статусу ремонта? (да/нет): ");
+
+    bool repair_status = false;
+    if (use_repair_filter) {
+        repair_status = getYesNoInput("Искать трубы в ремонте? (да/нет): ");
+    }
+
+    cout << "\n=== Результаты поиска ===\n";
+    bool found = false;
+    for (const Pipe& p : pipes) {
+        if (p.matchesNameFilter(name_filter) && p.matchesRepairFilter(use_repair_filter, repair_status)) {
+            p.display();
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "Трубы по заданным критериям не найдены.\n";
+    }
+}
+
+// ------------------ Поиск КС ------------------
+void searchCSs(const vector<CS>& css) {
+    cout << "\n=== Поиск КС ===\n";
 
 void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
     while (true) {
