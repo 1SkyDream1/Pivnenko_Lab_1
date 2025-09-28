@@ -11,20 +11,36 @@
 using namespace std;
 
 struct Pipe {
+    int id;
     string name;
     double length = 0.0;
     int diameter = 0;
     bool under_repair = false;
-    bool created = false; // флаг - труба создана
+    bool created = false;
+    static int next_id;
+
+    Pipe() {
+        id = ++next_id;
+    }
 };
 
+int Pipe::next_id = 0; // инициализация статического счётчика
+
 struct CS {
+    int id;
     string name;
     int workshop_count = 0;
     int working_workshop_count = 0;
     string station_class;
-    bool created = false; // флаг - КС создана
+    bool created = false;
+    static int next_id;
+
+    CS() {
+        id = ++next_id;
+    }
 };
+
+int CS::next_id = 0;
 
 // ------------------ Утилиты ------------------
 
@@ -215,8 +231,8 @@ void addPipe(vector<Pipe>& pipes) {
     p.created = true;
     pipes.push_back(p);
 
-    string msg = "Добавлена труба: " + p.name + " (длина " + to_string(p.length) + " км, диаметр " + to_string(p.diameter) + " мм)";
-    cout << "Труба '" << p.name << "' успешно добавлена!\n";
+    string msg = "Добавлена труба [ID=" + to_string(p.id) + "]: " + p.name;
+    cout << "Труба '" << p.name << "' успешно добавлена! (ID=" << p.id << ")\n";
     logAction(msg);
 }
 
@@ -226,9 +242,8 @@ void showPipes(const vector<Pipe>& pipes) {
         cout << "Труб нет.\n";
         return;
     }
-    for (size_t i = 0; i < pipes.size(); ++i) {
-        const Pipe& p = pipes[i];
-        cout << i + 1 << ". " << p.name
+    for (const Pipe& p : pipes) {
+        cout << "[" << p.id << "] " << p.name
             << " | длина: " << p.length << " км"
             << " | диаметр: " << p.diameter << " мм"
             << " | статус: " << (p.under_repair ? "в ремонте" : "работает") << "\n";
@@ -297,8 +312,9 @@ void addCS(vector<CS>& css) {
     cs.station_class = getStringInput("Введите класс станции: ", false, true);
     cs.created = true;
     css.push_back(cs);
-    string msg = "Добавлена КС: " + cs.name + " (цехов " + to_string(cs.workshop_count) + ", работает " + to_string(cs.working_workshop_count) + ")";
-    cout << "КС '" << cs.name << "' успешно добавлена!\n";
+
+    string msg = "Добавлена КС [ID=" + to_string(cs.id) + "]: " + cs.name;
+    cout << "КС '" << cs.name << "' успешно добавлена! (ID=" << cs.id << ")\n";
     logAction(msg);
 }
 
@@ -308,14 +324,14 @@ void showCSs(const vector<CS>& css) {
         cout << "КС нет.\n";
         return;
     }
-    for (size_t i = 0; i < css.size(); ++i) {
-        const CS& c = css[i];
-        cout << i + 1 << ". " << c.name
+    for (const CS& c : css) {
+        cout << "[" << c.id << "] " << c.name
             << " | цехов: " << c.workshop_count
             << " | работающих: " << c.working_workshop_count
             << " | класс: " << c.station_class << "\n";
     }
 }
+
 
 void editCSAt(vector<CS>& css) {
     if (css.empty()) {
