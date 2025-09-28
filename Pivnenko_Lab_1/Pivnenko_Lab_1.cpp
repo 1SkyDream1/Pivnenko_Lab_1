@@ -22,6 +22,21 @@ struct Pipe {
     Pipe() {
         id = ++next_id;
     }
+    void display() const {
+        cout << "[" << id << "] " << name
+            << " | длина: " << length << " км"
+            << " | диаметр: " << diameter << " мм"
+            << " | статус: " << (under_repair ? "в ремонте" : "работает") << "\n";
+    }
+    bool matchesNameFilter(const string& search_name) const {
+        if (search_name.empty()) return true;
+        return name.find(search_name) != string::npos;
+    }
+
+    bool matchesRepairFilter(bool filter_by_repair, bool repair_status) const {
+        if (!filter_by_repair) return true;
+        return under_repair == repair_status;
+    }
 };
 
 int Pipe::next_id = 0; // инициализация статического счётчика
@@ -37,6 +52,27 @@ struct CS {
 
     CS() {
         id = ++next_id;
+    }
+    void display() const {
+        cout << "[" << id << "] " << name
+            << " | цехов: " << workshop_count
+            << " | работающих: " << working_workshop_count
+            << " | класс: " << station_class
+            << " | процент незадействованных: " << getUnusedPercentage() << "%\n";
+    }
+    bool matchesNameFilter(const string& search_name) const {
+        if (search_name.empty()) return true;
+        return name.find(search_name) != string::npos;
+    }
+
+    double getUnusedPercentage() const {
+        if (workshop_count == 0) return 0.0;
+        return ((workshop_count - working_workshop_count) * 100.0) / workshop_count;
+    }
+
+    bool matchesUnusedFilter(bool filter_by_unused, double min_percent) const {
+        if (!filter_by_unused) return true;
+        return getUnusedPercentage() >= min_percent;
     }
 };
 
@@ -79,10 +115,8 @@ bool isAlphanumeric(const string& str) {
     }
     return true;
 }
-
-// безопасное чтение целого числа
-int getIntegerInput(const string& prompt, int min_val = 1, int max_val = numeric_limits<int>::max()) {
-    int value;
+// ПРОСТАЯ РАБОЧАЯ версия для меню
+int getIntegerInput(const string& prompt, int min_val = 0, int max_val = numeric_limits<int>::max()) {
     while (true) {
         cout << prompt;
         string input;
@@ -94,21 +128,10 @@ int getIntegerInput(const string& prompt, int min_val = 1, int max_val = numeric
             continue;
         }
 
-        bool has_non_digit = false;
-        for (size_t i = 0; i < input.size(); i++) {
-            if (!isdigit(static_cast<unsigned char>(input[i]))) {
-                has_non_digit = true;
-                break;
-            }
-        }
+        // Пробуем преобразовать в число
+        try {
+            int value = stoi(input);
 
-        if (has_non_digit) {
-            cout << "Ошибка! Введите целое число. Попробуйте снова.\n";
-            continue;
-        }
-
-        stringstream ss(input);
-        if (ss >> value) {
             if (value < min_val) {
                 cout << "Ошибка! Значение должно быть не меньше " << min_val << ". Попробуйте снова.\n";
             }
@@ -119,7 +142,7 @@ int getIntegerInput(const string& prompt, int min_val = 1, int max_val = numeric
                 return value;
             }
         }
-        else {
+        catch (const exception& e) {
             cout << "Ошибка! Введите корректное целое число. Попробуйте снова.\n";
         }
     }
@@ -437,6 +460,154 @@ void searchPipes(const vector<Pipe>& pipes) {
 void searchCSs(const vector<CS>& css) {
     cout << "\n=== Поиск КС ===\n";
 
+    string name_filter = getStringInput("Введите название для поиска (или Enter для пропуска): ", true, true);
+    bool use_unused_filter = getYesNoInput("Фильтровать по проценту незадействованных цехов? (да/нет): ");
+
+    double min_percent = 0.0;
+    if (use_unused_filter) {
+        min_percent = getDoubleInput("Введите минимальный процент незадействованных цехов: ", 0.0, 100.0);
+    }
+
+    cout << "\n=== Результаты поиска ===\n";
+    bool found = false;
+    for (const CS& c : css) {
+        if (c.matchesNameFilter(name_filter) && c.matchesUnusedFilter(use_unused_filter, min_percent)) {
+            c.display();
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "КС по заданным критериям не найдены.\n";
+    }
+}
+
+// ------------------ Пакетное редактирование труб ------------------
+void batchEditPipes(vector<Pipe>& pipes) {
+    cout << "\n=== Пакетное редактирование труб ===\n";
+
+    // Сначала ищем трубы по фильтру
+    string name_filter = getStringInput("Введите название для поиска (или Enter для всех): ", true, true);
+    bool use_repair_filter = getYesNoInput("Фильтровать по статусу ремонта? (да/нет): ");
+
+    bool repair_status = false;
+    if (use_repair_filter) {
+        repair_status = getYesNoInput("Искать трубы в ремонте? (да/нет): ");
+    }
+
+    // Собираем подходящие трубы
+    vector<int> matching_indices;
+    for (size_t i = 0; i < pipes.size(); i++) {
+        if (pipes[i].matchesNameFilter(name_filter) &&
+            pipes[i].matchesRepairFilter(use_repair_filter, repair_status)) {
+            matching_indices.push_back(i);
+        }
+    }
+
+    if (matching_indices.empty()) {
+        cout << "Трубы по заданным критериям не найдены.\n";
+        return;
+    }
+
+    // Показываем найденные трубы
+    cout << "\n=== Найдены трубы для редактирования ===\n";
+    for (int idx : matching_indices) {
+        cout << "[" << (idx + 1) << "] ";
+        pipes[idx].display();
+    }
+
+    // Выбор режима редактирования
+    cout << "\nРежимы редактирования:\n"
+        << "1 - Изменить все найденные трубы\n"
+        << "2 - Выбрать конкретные трубы\n"
+        << "0 - Отмена\n";
+
+    int mode = getIntegerInput("Выберите режим: ", 0, 2);
+
+    if (mode == 0) {
+        cout << "Отмена пакетного редактирования.\n";
+        return;
+    }
+
+    vector<int> selected_indices;
+    if (mode == 1) {
+        // Выбраны все найденные трубы
+        selected_indices = matching_indices;
+    }
+    else if (mode == 2) {
+        // Пользователь выбирает конкретные трубы
+        cout << "\nВведите номера труб для редактирования (через пробел, 0 - завершить ввод):\n";
+        string input;
+        getline(cin, input);
+        stringstream ss(input);
+        int num;
+
+        while (ss >> num) {
+            if (num == 0) break;
+            // Проверяем, что номер в пределах найденных труб
+            bool valid = false;
+            for (int idx : matching_indices) {
+                if (idx + 1 == num) {
+                    selected_indices.push_back(idx);
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid) {
+                cout << "Труба с номером " << num << " не найдена в результатах поиска.\n";
+            }
+        }
+
+        if (selected_indices.empty()) {
+            cout << "Не выбрано ни одной трубы для редактирования.\n";
+            return;
+        }
+    }
+
+    // Выбор действия для редактирования
+    cout << "\nВыберите действие:\n"
+        << "1 - Перевести в ремонт\n"
+        << "2 - Вывести из ремонта\n"
+        << "3 - Переключить статус ремонта\n"
+        << "0 - Отмена\n";
+
+    int action = getIntegerInput("Ваш выбор: ", 0, 3);
+
+    if (action == 0) {
+        cout << "Отмена редактирования.\n";
+        return;
+    }
+
+    // Применяем изменения
+    int changed_count = 0;
+    for (int idx : selected_indices) {
+        Pipe& pipe = pipes[idx];
+        bool original_status = pipe.under_repair;
+        bool new_status = original_status;
+
+        switch (action) {
+        case 1: new_status = true; break;
+        case 2: new_status = false; break;
+        case 3: new_status = !original_status; break;
+        }
+
+        if (original_status != new_status) {
+            pipe.under_repair = new_status;
+            changed_count++;
+            cout << "Труба '" << pipe.name << "' -> " << (new_status ? "в ремонте" : "работает") << "\n";
+        }
+    }
+
+    cout << "\nИзменено труб: " << changed_count << "\n";
+
+    // Логирование
+    string log_msg = "Пакетное редактирование: изменено " + to_string(changed_count) + " труб";
+    if (!name_filter.empty()) log_msg += ", фильтр: '" + name_filter + "'";
+    if (use_repair_filter) log_msg += ", статус: " + string(repair_status ? "в ремонте" : "работает");
+    logAction(log_msg);
+}
+
+// ------------------ Меню ------------------
 void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
     while (true) {
         cout << "\n=== ГЛАВНОЕ МЕНЮ ===\n"
@@ -448,9 +619,12 @@ void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
             << "6. Редактировать КС\n"
             << "7. Удалить трубу\n"
             << "8. Удалить КС\n"
+            << "9. Поиск труб\n"         
+            << "10. Поиск КС\n"     
+            << "11. Пакетное редактирование труб\n"
             << "0. Выход\n";
 
-        int choice = getIntegerInput("Выберите действие: ", 0, 8);
+        int choice = getIntegerInput("Выберите действие: ", 0, 11);
 
         switch (choice) {
         case 1:
@@ -477,12 +651,21 @@ void ShowMenu(vector<Pipe>& pipes, vector<CS>& css) {
         case 8:
             deleteCSAt(css);
             break;
+        case 9:
+            searchPipes(pipes);
+            break;
+        case 10:
+            searchCSs(css);
+            break;
+        case 11:
+            batchEditPipes(pipes);
+            break;
         case 0:
             cout << "Выход из программы. До свидания!\n";
             logAction("Выход из программы");
             return;
         default:
-            cout << "Неверный выбор! Пожалуйста, введите число от 0 до 8.\n";
+            cout << "Неверный выбор! Пожалуйста, введите число от 0 до 11.\n";
         }
     }
 }
